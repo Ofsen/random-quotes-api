@@ -56,7 +56,11 @@ type MessagesType struct {
 }
 
 func main() {
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// 1 - Get random quote
 		resp, err := http.Get("https://api.quotable.io/random")
 		if err != nil {
