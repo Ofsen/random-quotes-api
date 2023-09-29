@@ -140,9 +140,10 @@ func main() {
 		w.Write([]byte(result))
     })
 
-    log.Println("Listening on localhost:8080")
+	 port := os.Getenv("PORT")
 
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Printf("Listening on PORT %s", port)
+    log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
 
 func PromptBuilder(prompt string) ChatBody {
