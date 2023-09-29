@@ -1,0 +1,15 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+go.work
+
+*.env
