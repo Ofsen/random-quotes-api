@@ -139,9 +139,9 @@ func main() {
 		}
 
 		// 3 - Build the tweet
-		// generatedHashtags := strings.Split(chatBody.Choices[0].Message.Content, " ")
-		// concatHashtags := removeDuplicate(append(generatedHashtags, hashtags...))
-		formattedHashtags := strings.Join(hashtags, " ")
+		generatedHashtags := strings.Split(chatBody.Choices[0].Message.Content, " ")
+		concatHashtags := removeDuplicate(append(generatedHashtags, hashtags...))
+		formattedHashtags := strings.Join(concatHashtags, " ")
 
 		var result string
 		result = fmt.Sprintf("%s - %s \n%s #DailyQuotes", quote.Content, quote.Author, formattedHashtags)
@@ -163,7 +163,7 @@ func PromptBuilder(prompt string) ChatBody {
 		Messages: []MessagesType{
 			{
 				Role:    "system",
-				Content: "The text below is quote from famous people; Take the quote and generate a list of 2 or 3 hashtags; The hashtags are positive and help with to get a good mindset; Each hashtag in the list is seperated by one space; Only return the hashtags; Text:",
+				Content: "The text below is quote from famous people; Take the quote and generate a list of 2 or 3 hashtags; The hashtags are positive and help with to get a good mindset; Each hashtag in the list is seperated by one space; Only return the hashtags; Never apologies, always return hashtags, if you can't generate hashtags return a empty string; Text:",
 				Name:    "instructions",
 			},
 			{
