@@ -139,9 +139,9 @@ func main() {
 		}
 
 		// 3 - Build the tweet
-		generatedHashtags := strings.Split(chatBody.Choices[0].Message.Content, " ")
-		concatHashtags := removeDuplicate(append(generatedHashtags, hashtags...))
-		formattedHashtags := strings.Join(concatHashtags, " ")
+		// generatedHashtags := strings.Split(chatBody.Choices[0].Message.Content, " ")
+		// concatHashtags := removeDuplicate(append(generatedHashtags, hashtags...))
+		formattedHashtags := strings.Join(hashtags, " ")
 
 		var result string
 		result = fmt.Sprintf("%s - %s \n%s #DailyQuotes", quote.Content, quote.Author, formattedHashtags)
