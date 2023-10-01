@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "bytes"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -95,61 +95,56 @@ func main() {
         	hashtags = append(hashtags, hashtag)
 		}
 
-		displayHash := strings.Join(hashtags, " ")
-
 		// 2 - Use chatGPT for something
-		// var chatBody = &AiResponse{}
-		// if len(quote.Tags) != 0 {
-		// 	instructions := PromptBuilder(fmt.Sprintf("[%s]", strings.Join(quote.Tags, ", ")))
-		// 	jsonInstruction, err := json.Marshal(instructions)
-		// 	if err != nil {
-		// 		http.Error(w, fmt.Sprintf("Failed to marshal the instruction: %s", err.Error()), http.StatusInternalServerError)
-		// 		return
-		// 	}
-
-		// 	chatReq, err := http.NewRequest("POST", "https://api.naga.ac/v1/chat/completions", bytes.NewBuffer(jsonInstruction))
-		// 	if err != nil {
-		// 		http.Error(w, fmt.Sprintf("Failed to make a request: %s", err.Error()), http.StatusInternalServerError)
-		// 		return
-		// 	}
-		// 	chatReq.Header.Add("Content-type", "application/json")
-		// 	apiKey := os.Getenv("NAGA_AI_KEY")
-		// 	chatReq.Header.Add("Authorization", fmt.Sprintf("Bearer %s", apiKey))
-
-		// 	client := &http.Client{}
-		// 	chatResp, err := client.Do(chatReq)
-		// 	if err != nil {
-		// 		http.Error(w, fmt.Sprintf("Failed to get a response from AI: %s", err.Error()), http.StatusInternalServerError)
-		// 		return
-		// 	}
-		// 	defer chatResp.Body.Close()
-		// 	fmt.Println(chatResp.Body)
-
-		// 	if chatResp.StatusCode != http.StatusOK {
-		// 		http.Error(w, fmt.Sprintf("Request failed with status code: %v", chatResp.StatusCode), http.StatusInternalServerError)
-		// 		return
-		// 	}
-			
-		// 	chatBodyBytes, err := io.ReadAll(chatResp.Body)
-		// 	if err != nil {
-		// 		http.Error(w, fmt.Sprintf("Failed to read response body: %s", err.Error()), http.StatusInternalServerError)
-		// 		return
-		// 	}
-			
-		// 	if err := json.Unmarshal(chatBodyBytes, &chatBody); err != nil {
-		// 		http.Error(w, fmt.Sprintf("Failed to Unmarshal the repsonse body: %s", err.Error()), http.StatusInternalServerError)
-		// 		return
-		// 	}
-		// }
+		instructions := PromptBuilder(fmt.Sprintf("%s - %s", quote.Content, quote.Author))
+		jsonInstruction, err := json.Marshal(instructions)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to marshal the instruction: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		
+		chatReq, err := http.NewRequest("POST", "https://api.naga.ac/v1/chat/completions", bytes.NewBuffer(jsonInstruction))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to make a request: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		chatReq.Header.Add("Content-type", "application/json")
+		apiKey := os.Getenv("NAGA_AI_KEY")
+		chatReq.Header.Add("Authorization", fmt.Sprintf("Bearer %s", apiKey))
+		
+		client := &http.Client{}
+		chatResp, err := client.Do(chatReq)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get a response from AI: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		defer chatResp.Body.Close()
+		fmt.Println(chatResp.Body)
+		
+		if chatResp.StatusCode != http.StatusOK {
+			http.Error(w, fmt.Sprintf("Request failed with status code: %v", chatResp.StatusCode), http.StatusInternalServerError)
+			return
+		}
+		
+		chatBodyBytes, err := io.ReadAll(chatResp.Body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to read response body: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+		
+		var chatBody = &AiResponse{}
+		if err := json.Unmarshal(chatBodyBytes, &chatBody); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to Unmarshal the repsonse body: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
 
 		// 3 - Build the tweet
+		generatedHashtags := strings.Split(chatBody.Choices[0].Message.Content, " ")
+		concatHashtags := removeDuplicate(append(generatedHashtags, hashtags...))
+		formattedHashtags := strings.Join(concatHashtags, " ")
+
 		var result string
-		// if len(chatBody.Choices) == 0 {
-		// 	result = fmt.Sprintf("%s - %s \n%s", quote.Content, quote.Author, "#DailyQuotes")
-		// } else {
-		// 	result = fmt.Sprintf("%s - %s \n%s #DailyQuotes", quote.Content, quote.Author, hashtags)
-		// }
-		result = fmt.Sprintf("%s - %s \n%s #DailyQuotes", quote.Content, quote.Author, displayHash)
+		result = fmt.Sprintf("%s - %s \n%s #DailyQuotes", quote.Content, quote.Author, formattedHashtags)
 
 		// 4 - Return a formated text for the tweet
 		w.Header().Set("Content-Type", "text/plain")
@@ -168,7 +163,7 @@ func PromptBuilder(prompt string) ChatBody {
 		Messages: []MessagesType{
 			{
 				Role:    "system",
-				Content: "Take the following Liste and format it into hashtags; Example: Liste: [Technologie, AI Agent]. Answer: #Technologie #AIAgent; One rule: Do not add anything to the answer, just the formatted hashtags, This rule is Absolute; Now, here is the list:",
+				Content: "The text below is quote from famous people; Take the quote and generate a list of 2 or 3 hashtags; The hashtags are positive and help with to get a good mindset; Each hashtag in the list is seperated by one space; Only return the hashtags; Text:",
 				Name:    "instructions",
 			},
 			{
@@ -180,4 +175,16 @@ func PromptBuilder(prompt string) ChatBody {
 	}
 
 	return chat
+}
+
+func removeDuplicate[T string | int](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		 if _, value := allKeys[item]; !value {
+			  allKeys[item] = true
+			  list = append(list, item)
+		 }
+	}
+	return list
 }
