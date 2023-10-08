@@ -25,7 +25,7 @@ func main() {
 		quote, hashtags := utils.GetRandomQuote(w)
 
 		// 2 - Use AI to generate more hashtags
-		chatBody := utils.GenerateHashtags(w, quote)
+		chatBody := utils.GenerateHashtags(w, quote, strings.Join(hashtags, " "))
 
 		// 3 - Build the tweet
 		generatedHashtags := strings.Split(chatBody.Choices[0].Message.Content, " ")

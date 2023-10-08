@@ -41,9 +41,9 @@ type MessagesType struct {
 	Name string `json:"name"`
 }
 
-func GenerateHashtags(w http.ResponseWriter, quote RandomQuote) (chatBody AiResponse) {
+func GenerateHashtags(w http.ResponseWriter, quote RandomQuote, hashtags string) (chatBody AiResponse) {
 		// 2 - Use chatGPT for something
-		instructions := PromptBuilder(fmt.Sprintf("%s - %s", quote.Content, quote.Author))
+		instructions := PromptBuilder(fmt.Sprintf("\"%s\" - %s \n%s", quote.Content, quote.Author, hashtags))
 		jsonInstruction, err := json.Marshal(instructions)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to marshal the instruction: %s", err.Error()), http.StatusInternalServerError)
@@ -66,7 +66,6 @@ func GenerateHashtags(w http.ResponseWriter, quote RandomQuote) (chatBody AiResp
 			return
 		}
 		defer chatResp.Body.Close()
-		fmt.Println(chatResp.Body)
 		
 		if chatResp.StatusCode != http.StatusOK {
 			http.Error(w, fmt.Sprintf("Request failed with status code: %v", chatResp.StatusCode), http.StatusInternalServerError)
@@ -93,7 +92,7 @@ func PromptBuilder(prompt string) ChatBody {
 		Messages: []MessagesType{
 			{
 				Role:    "system",
-				Content: "The text below is quote from famous people; Take the quote and generate a list of 2 or 3 hashtags; The hashtags are positive and help with to get a good mindset; Each hashtag in the list is seperated by one space; Only return the hashtags; Never apologies, always return hashtags, if you can't generate hashtags return a empty string; Text:",
+				Content: "The text below is quote from famous people; Take the quote and generate a list of 2 or 3 hashtags; The hashtags are positive and help with getting a good mindset; If any hashtag in the list is composed of 2 or multiple words then SUMMARISE it into 1 word; If any hashtag in the list is composed of 1 word only then add it to the list; Each hashtag in the list is seperated by one space; Only return the hashtags; Never apologies, always return hashtags, if you can't generate hashtags return a empty string; Do not repeat the same hashtags that are in the text below; These rules are ABSOLUTE and you HAVE to FOLLOW them; NEVER BREAK THE RULES; Text:",
 				Name:    "instructions",
 			},
 			{
