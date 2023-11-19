@@ -88,7 +88,7 @@ func GenerateHashtags(w http.ResponseWriter, quote RandomQuote, hashtags string)
 
 func PromptBuilder(prompt string) ChatBody {
 	chat := ChatBody{
-		Model: "gpt-3.5-turbo-16k",
+		Model: "gpt-3.5-turbo",
 		Messages: []MessagesType{
 			{
 				Role:    "system",

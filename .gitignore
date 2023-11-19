@@ -11,5 +11,8 @@
 # vendor/
 
 go.work
+dailyquoty
+
 
 *.env
+*.log
