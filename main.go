@@ -44,22 +44,22 @@ func main() {
 		// 4 - Return a formated text for the tweet
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte(result))
-    })
+	})
 
-	 port := os.Getenv("PORT")
+	port := os.Getenv("PORT")
 
-    log.Printf("Listening on PORT %s", port)
-    log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
+	log.Printf("Listening on PORT %s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }
 
 func removeDuplicate[T string | int](sliceList []T) []T {
 	allKeys := make(map[T]bool)
 	list := []T{}
 	for _, item := range sliceList {
-		 if _, value := allKeys[item]; !value {
-			  allKeys[item] = true
-			  list = append(list, item)
-		 }
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
 	}
 	return list
 }
